@@ -145,10 +145,10 @@ const Index = () => {
       let captionText = '';
       if (Array.isArray(captionResult)) {
         // Handle array case
-        captionText = captionResult[0]?.text || '';
+        captionText = captionResult[0]?.generated_text || '';
       } else {
         // Handle single object case
-        captionText = (captionResult as any)?.text || '';
+        captionText = (captionResult as any)?.generated_text || '';
       }
       
       console.log('Caption result:', captionResult);
