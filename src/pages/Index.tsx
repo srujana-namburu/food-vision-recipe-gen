@@ -141,14 +141,20 @@ const Index = () => {
         }
       });
 
-      // Extract ingredients from caption - fix the type error
+      // Extract ingredients from caption - properly handle the return type
       let captionText = '';
-      if (Array.isArray(captionResult)) {
-        // Handle array case
-        captionText = captionResult[0]?.generated_text || '';
-      } else {
-        // Handle single object case
-        captionText = (captionResult as any)?.generated_text || '';
+      try {
+        // Handle different possible return structures
+        if (Array.isArray(captionResult)) {
+          captionText = captionResult[0]?.generated_text || captionResult[0]?.text || '';
+        } else if (captionResult && typeof captionResult === 'object') {
+          // Type assertion to handle the actual structure
+          const result = captionResult as any;
+          captionText = result.generated_text || result.text || '';
+        }
+      } catch (error) {
+        console.error('Error processing caption result:', error);
+        captionText = '';
       }
       
       console.log('Caption result:', captionResult);
