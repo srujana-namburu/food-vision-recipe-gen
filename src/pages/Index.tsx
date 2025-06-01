@@ -141,8 +141,19 @@ const Index = () => {
         }
       });
 
-      // Extract ingredients from caption
-      const captionText = captionResult[0]?.generated_text || '';
+      // Extract ingredients from caption - fix the type error
+      let captionText = '';
+      if (Array.isArray(captionResult)) {
+        // Handle array case
+        captionText = captionResult[0]?.text || '';
+      } else {
+        // Handle single object case
+        captionText = (captionResult as any)?.text || '';
+      }
+      
+      console.log('Caption result:', captionResult);
+      console.log('Caption text:', captionText);
+      
       foodKeywords.forEach((keyword, index) => {
         if (captionText.toLowerCase().includes(keyword)) {
           ingredients.push({
