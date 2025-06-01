@@ -66,6 +66,13 @@ const Index = () => {
       const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
       tracks.forEach(track => track.stop());
     }
+    setIsCapturing(false);
+  };
+
+  const removePicture = () => {
+    setCapturedImage(null);
+    setDetectedIngredients([]);
+    setGeneratedRecipes([]);
   };
 
   const captureImage = useCallback(async () => {
@@ -321,23 +328,34 @@ const Index = () => {
                     </div>
                     
                     {isCapturing && (
-                      <Button
-                        onClick={captureImage}
-                        disabled={isProcessing}
-                        className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
-                      >
-                        {isProcessing ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            <Camera className="w-4 h-4 mr-2" />
-                            Capture Image
-                          </>
-                        )}
-                      </Button>
+                      <div className="space-y-2">
+                        <Button
+                          onClick={captureImage}
+                          disabled={isProcessing}
+                          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+                        >
+                          {isProcessing ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <Camera className="w-4 h-4 mr-2" />
+                              Capture Image
+                            </>
+                          )}
+                        </Button>
+                        
+                        <Button
+                          onClick={stopCamera}
+                          variant="outline"
+                          className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Stop Camera
+                        </Button>
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -362,12 +380,22 @@ const Index = () => {
                 )}
 
                 {capturedImage && (
-                  <div className="mt-4">
-                    <img
-                      src={capturedImage}
-                      alt="Captured food"
-                      className="w-full rounded-xl shadow-lg"
-                    />
+                  <div className="mt-4 space-y-3">
+                    <div className="relative">
+                      <img
+                        src={capturedImage}
+                        alt="Captured food"
+                        className="w-full rounded-xl shadow-lg"
+                      />
+                    </div>
+                    <Button
+                      onClick={removePicture}
+                      variant="outline"
+                      className="w-full border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Remove Picture
+                    </Button>
                   </div>
                 )}
 
