@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Camera, Upload, Loader2, ChefHat, Clock, Users, Star, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -141,23 +140,30 @@ const Index = () => {
         }
       });
 
-      // Extract ingredients from caption - properly handle the return type
+      // Extract ingredients from caption - handle the actual return type structure
       let captionText = '';
       try {
-        // Handle different possible return structures
-        if (Array.isArray(captionResult)) {
-          captionText = captionResult[0]?.generated_text || captionResult[0]?.text || '';
-        } else if (captionResult && typeof captionResult === 'object') {
-          // Type assertion to handle the actual structure
-          const result = captionResult as any;
-          captionText = result.generated_text || result.text || '';
+        console.log('Caption result:', captionResult);
+        
+        // The imageToText pipeline returns an array or object with specific structure
+        // Let's handle it properly by casting to any and accessing the actual structure
+        const result = captionResult as any;
+        
+        if (Array.isArray(result)) {
+          // If it's an array, get the first item and look for the text property
+          captionText = result[0]?.generated_text || result[0]?.text || JSON.stringify(result[0]) || '';
+        } else if (result && typeof result === 'object') {
+          // If it's an object, look for common text properties
+          captionText = result.generated_text || result.text || result.caption || JSON.stringify(result) || '';
+        } else {
+          // If it's a string, use it directly
+          captionText = String(result) || '';
         }
       } catch (error) {
         console.error('Error processing caption result:', error);
         captionText = '';
       }
       
-      console.log('Caption result:', captionResult);
       console.log('Caption text:', captionText);
       
       foodKeywords.forEach((keyword, index) => {
