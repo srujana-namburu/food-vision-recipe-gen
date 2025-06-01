@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,20 +36,19 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* RecipeSnap Culinary Colors */
+    --culinary-orange: 15 100% 60%;
+    --culinary-green: 174 64% 55%;
+    --culinary-cream: 36 100% 97%;
+    --culinary-charcoal: 210 29% 24%;
   }
 
   .dark {
@@ -98,4 +98,45 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer utilities {
+  .culinary-gradient {
+    background: linear-gradient(135deg, #FF6B35 0%, #4ECDC4 100%);
+  }
+  
+  .ingredient-badge {
+    @apply transform transition-all duration-200 hover:scale-105 hover:shadow-md;
+  }
+
+  .recipe-card {
+    @apply transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl;
+  }
+
+  .camera-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .cooking-animation {
+    animation: bounce-in 0.6s ease-out;
+  }
+}
+
+/* Custom scrollbar for recipe modal */
+.recipe-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.recipe-modal::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.recipe-modal::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #FF6B35, #4ECDC4);
+  border-radius: 3px;
+}
+
+.recipe-modal::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #e55a2b, #42b8b1);
 }
