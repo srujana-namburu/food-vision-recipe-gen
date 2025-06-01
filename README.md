@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# Food Vision Recipe Generator
 
 ## Project info
 
@@ -54,20 +54,57 @@ npm run dev
 
 This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- Vite, TypeScript, React, shadcn-ui, and Tailwind CSS for the frontend
+- Python Flask backend with the following AI models:
+  - VisionEncoderDecoderModel for image captioning
+  - DetrForObjectDetection for ingredient detection
+  - Mistral-7B-Instruct for recipe generation
 
-## How can I deploy this project?
+## How to run the application
 
-Simply open [Lovable](https://lovable.dev/projects/6f1c8818-6565-4efb-9e77-f505aa3a3232) and click on Share -> Publish.
+### Prerequisites
 
-## Can I connect a custom domain to my Lovable project?
+- Node.js & npm for the frontend
+- Python 3.8+ with pip for the backend
+- Webcam for capturing food images
 
-Yes, you can!
+### Running the backend
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```sh
+# Navigate to the backend directory
+cd backend
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Start the Flask backend server
+python app.py
+# Or use the convenience script
+./start_backend.sh
+```
+
+The backend server will run on http://localhost:5000
+
+### Running the frontend
+
+```sh
+# In a new terminal window, install frontend dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+The frontend will be available at http://localhost:5173
+
+### Using the application
+
+1. Open the frontend URL in your browser
+2. Allow camera access when prompted
+3. Point your camera at food items
+4. Click the capture button
+5. The application will detect ingredients and generate a recipe
+
+## Note on AI Models
+
+The first time you run the backend, it will download the required AI models which may take some time depending on your internet connection. These models require significant disk space and memory to run.

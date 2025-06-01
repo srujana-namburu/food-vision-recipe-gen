@@ -3,7 +3,7 @@ import { Camera, Upload, Loader2, ChefHat, Clock, Users, Star, Plus, X } from 'l
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { pipeline } from '@huggingface/transformers';
+// Backend API is used instead of client-side Hugging Face transformers
 
 interface DetectedIngredient {
   name: string;
@@ -112,87 +112,140 @@ const Index = () => {
     setGeneratedRecipes([]);
 
     try {
-      // Convert data URL to blob for processing
-      const response = await fetch(imageDataUrl);
-      const blob = await response.blob();
-
-      // Initialize AI models
-      const objectDetector = await pipeline('object-detection', 'facebook/detr-resnet-50');
-      const imageToText = await pipeline('image-to-text', 'nlpconnect/vit-gpt2-image-captioning');
-
-      // Detect objects in image
-      const detectionResults = await objectDetector(blob);
-      
-      // Generate image caption
-      const captionResult = await imageToText(blob);
-      
-      // Process detection results to extract food-related items
-      const foodKeywords = [
-        'apple', 'banana', 'orange', 'tomato', 'carrot', 'broccoli', 'potato', 'onion',
-        'garlic', 'bell pepper', 'spinach', 'lettuce', 'cucumber', 'mushroom', 'cheese',
-        'bread', 'egg', 'milk', 'butter', 'chicken', 'beef', 'fish', 'rice', 'pasta'
-      ];
-
-      const ingredients: DetectedIngredient[] = [];
-      
-      // Add detected objects that are food items
-      detectionResults.forEach((detection: any, index: number) => {
-        const label = detection.label.toLowerCase();
-        if (foodKeywords.some(keyword => label.includes(keyword)) || detection.score > 0.7) {
-          ingredients.push({
-            id: `detected-${index}`,
-            name: detection.label,
-            confidence: detection.score
-          });
-        }
+      console.log('Sending image to backend for processing...');
+      // Send image to backend API for processing
+      const response = await fetch('http://localhost:5002/api/process-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image: imageDataUrl }),
       });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Received backend response:', data);
+      
+      // Create a list to store all detected ingredients
+      let allIngredients: DetectedIngredient[] = [];
+      
+      // Process ingredients from API response
+      if (data.ingredients && Array.isArray(data.ingredients)) {
+        const basicIngredients: DetectedIngredient[] = data.ingredients.map((name: string) => ({
+          name: name,
+          confidence: 0.95,
+          id: `ing-${Math.random().toString(36).substring(2, 9)}`
+        }));
+        allIngredients = [...allIngredients, ...basicIngredients];
+      }
 
-      // Extract ingredients from caption - handle the actual return type structure
+      // Add detected objects from detectionResults if available
+      if (data.detectionResults && Array.isArray(data.detectionResults)) {
+        data.detectionResults.forEach((detection: any, index: number) => {
+          if (detection && detection.label) {
+            allIngredients.push({
+              id: `detected-${index}`,
+              name: detection.label,
+              confidence: detection.score || 0.9
+            });
+          }
+        });
+      }
+
+      // Extract caption text
       let captionText = '';
-      try {
-        console.log('Caption result:', captionResult);
-        
-        // The imageToText pipeline returns an array or object with specific structure
-        // Let's handle it properly by casting to any and accessing the actual structure
-        const result = captionResult as any;
-        
-        if (Array.isArray(result)) {
-          // If it's an array, get the first item and look for the text property
-          captionText = result[0]?.generated_text || result[0]?.text || JSON.stringify(result[0]) || '';
-        } else if (result && typeof result === 'object') {
-          // If it's an object, look for common text properties
-          captionText = result.generated_text || result.text || result.caption || JSON.stringify(result) || '';
-        } else {
-          // If it's a string, use it directly
-          captionText = String(result) || '';
+      if (data.caption) {
+        captionText = data.caption;
+      } else if (data.captionResult) {
+        try {
+          console.log('Caption result:', data.captionResult);
+          
+          const result = data.captionResult;
+          
+          if (Array.isArray(result) && result.length > 0) {
+            captionText = result[0]?.generated_text || '';
+          } else if (typeof result === 'object') {
+            captionText = result.generated_text || result.text || '';
+          } else if (typeof result === 'string') {
+            captionText = result;
+          }
+        } catch (error) {
+          console.error('Error processing caption result:', error);
         }
-      } catch (error) {
-        console.error('Error processing caption result:', error);
-        captionText = '';
       }
       
       console.log('Caption text:', captionText);
       
-      foodKeywords.forEach((keyword, index) => {
-        if (captionText.toLowerCase().includes(keyword)) {
-          ingredients.push({
-            id: `caption-${index}`,
-            name: keyword,
-            confidence: 0.8
-          });
-        }
-      });
+      // Add food keywords from caption if available
+      if (data.foodKeywords && Array.isArray(data.foodKeywords) && captionText) {
+        data.foodKeywords.forEach((keyword: string, index: number) => {
+          if (captionText.toLowerCase().includes(keyword.toLowerCase())) {
+            allIngredients.push({
+              id: `caption-${index}`,
+              name: keyword,
+              confidence: 0.8
+            });
+          }
+        });
+      }
 
       // Remove duplicates and set ingredients
-      const uniqueIngredients = ingredients.filter((ingredient, index, arr) => 
+      const uniqueIngredients = allIngredients.filter((ingredient, index, arr) => 
         arr.findIndex(i => i.name.toLowerCase() === ingredient.name.toLowerCase()) === index
       );
 
+      console.log('Unique ingredients detected:', uniqueIngredients);
       setDetectedIngredients(uniqueIngredients);
 
-      // Generate recipes based on detected ingredients
-      if (uniqueIngredients.length > 0) {
-        generateRecipes(uniqueIngredients.map(i => i.name));
+      // Generate recipe from API response
+      if (uniqueIngredients.length > 0 && data.recipe) {
+        // Parse the recipe text into a structured format
+        const recipeLines = data.recipe.split('\n').filter((line: string) => line.trim().length > 0);
+        console.log('Recipe lines:', recipeLines);
+        
+        // Extract title from the first line if possible
+        let title = `Recipe with ${uniqueIngredients[0].name}`;
+        let description = 'A delicious recipe using the detected ingredients';
+        let instructionLines: string[] = [];
+        
+        if (recipeLines.length > 0) {
+          // First line might be the title
+          if (!recipeLines[0].toLowerCase().includes('ingredient') && 
+              !recipeLines[0].toLowerCase().includes('instruction') && 
+              recipeLines[0].length < 100) {
+            title = recipeLines[0];
+            // Second line might be description
+            if (recipeLines.length > 1 && recipeLines[1].length > 20) {
+              description = recipeLines[1];
+              instructionLines = recipeLines.slice(2);
+            } else {
+              instructionLines = recipeLines.slice(1);
+            }
+          } else {
+            instructionLines = recipeLines;
+          }
+        }
+        
+        const ingredientNames = uniqueIngredients.map(ing => ing.name);
+        
+        const recipe: Recipe = {
+          id: `recipe-${Math.random().toString(36).substring(2, 9)}`,
+          title: title,
+          description: description,
+          ingredients: ingredientNames,
+          instructions: instructionLines.length > 0 ? instructionLines : ['Cook the ingredients together and serve'],
+          prepTime: Math.floor(Math.random() * 20) + 5,
+          cookTime: Math.floor(Math.random() * 30) + 10,
+          servings: Math.floor(Math.random() * 4) + 2,
+          difficulty: ['Easy', 'Medium', 'Hard'][Math.floor(Math.random() * 3)] as 'Easy' | 'Medium' | 'Hard',
+          rating: Math.floor(Math.random() * 2) + 4,
+        };
+        
+        console.log('Generated recipe:', recipe);
+        setGeneratedRecipes([recipe]);
       }
 
     } catch (error) {
@@ -202,8 +255,10 @@ const Index = () => {
     }
   };
 
+  // This function is no longer needed as recipes are generated by the backend API
+  // Keeping it as a placeholder in case we need client-side generation in the future
   const generateRecipes = async (ingredients: string[]) => {
-    // Simulate recipe generation (in a real app, this would call the Mistral model)
+    // This is now handled by the backend API
     const sampleRecipes: Recipe[] = [
       {
         id: '1',
