@@ -1,110 +1,55 @@
-# Food Vision Recipe Generator
+# 🧠 RecipeSnap - AI Cooking Assistant from Your Fridge
 
-## Project info
+**RecipeSnap** is a real-time AI cooking assistant that captures an image from your webcam, detects ingredients using object detection and image captioning, and then generates a recipe using GPT-2.
 
-**URL**: https://lovable.dev/projects/6f1c8818-6565-4efb-9e77-f505aa3a3232
+---
 
-## How can I edit this code?
+## 📸 What It Does
 
-There are several ways of editing your application.
+1. Takes a real-time webcam image.
+2. Detects ingredients using:
+   - **Image Captioning**
+   - **Object Detection**
+3. Uses **GPT-2** to suggest a simple recipe based on detected ingredients.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6f1c8818-6565-4efb-9e77-f505aa3a3232) and start prompting.
+## 🧠 Models Used
 
-Changes made via Lovable will be committed automatically to this repo.
+| Task                 | Model Used                                | Source                         |
+|----------------------|--------------------------------------------|--------------------------------|
+| Image Captioning     | `nlpconnect/vit-gpt2-image-captioning`     | Hugging Face Transformers      |
+| Object Detection     | `facebook/detr-resnet-50`                  | Hugging Face Transformers      |
+| Recipe Generation    | `gpt2`                                     | Hugging Face Transformers      |
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🚀 Setup Instructions
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 1. Clone the Repository
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite, TypeScript, React, shadcn-ui, and Tailwind CSS for the frontend
-- Python Flask backend with the following AI models:
-  - VisionEncoderDecoderModel for image captioning
-  - DetrForObjectDetection for ingredient detection
-  - Mistral-7B-Instruct for recipe generation
-
-## How to run the application
-
-### Prerequisites
-
-- Node.js & npm for the frontend
-- Python 3.8+ with pip for the backend
-- Webcam for capturing food images
-
-### Running the backend
-
-```sh
-# Navigate to the backend directory
-cd backend
-
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Start the Flask backend server
+```bash
+git clone https://github.com/yourusername/recipesnap.git
+cd recipesnap
+pip install torch torchvision transformers pillow opencv-python
 python app.py
-# Or use the convenience script
-./start_backend.sh
-```
-
-The backend server will run on http://localhost:5000
-
-### Running the frontend
-
-```sh
-# In a new terminal window, install frontend dependencies
 npm install
-
-# Start the development server
 npm run dev
 ```
 
-The frontend will be available at http://localhost:5173
+### 💡 Example Flow
+You open the app → Webcam feed starts.
 
-### Using the application
+The image is captured or Uploaded.
 
-1. Open the frontend URL in your browser
-2. Allow camera access when prompted
-3. Point your camera at food items
-4. Click the capture button
-5. The application will detect ingredients and generate a recipe
+The image is processed:
 
-## Note on AI Models
+Caption is generated.
 
-The first time you run the backend, it will download the required AI models which may take some time depending on your internet connection. These models require significant disk space and memory to run.
+Objects are detected.
+
+Ingredients are inferred.
+
+GPT-2 suggests a recipe using only those ingredients.
+
+You cook and enjoy! 🍳
